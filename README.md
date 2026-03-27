@@ -32,13 +32,13 @@ Each episode includes:
 Install the whole repository as a plugin:
 
 ```bash
-copilot plugin install OWNER/REPO
+copilot plugin install elemarin/repo2brainrot
 ```
 
 Then use the skill in a Copilot CLI session:
 
 ```text
-/repo2brainrot repos/my-repo
+/repo2brainrot https://github.com/elemarin/repo2brainrot
 ```
 
 ## Use it as a standalone skill
