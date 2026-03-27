@@ -41,8 +41,9 @@ SUBTITLE_STYLE = (
 
 KOKORO_VOICE = "af_heart"   # clear, natural female voice
 KOKORO_SPEED = 1.5          # fast brainrot pacing
-VIDEO_WIDTH = 1080
-VIDEO_HEIGHT = 1920          # 9:16 vertical
+VIDEO_WIDTH = 720
+VIDEO_HEIGHT = 1280          # 9:16 vertical (720p — good enough for mobile, much smaller files)
+VIDEO_CRF = 28               # libx264 quality — 23=high quality large, 28=good quality small
 MAX_EPISODE_SECONDS = 60     # hard cap — split into parts if longer
 
 # Code overlay config — BIGGER font for readability
@@ -497,7 +498,7 @@ def assemble_video(
         "ffmpeg", "-y", *input_args,
         "-filter_complex", filter_complex,
         "-map", f"[{last_stream}]", "-map", "1:a",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+        "-c:v", "libx264", "-preset", "fast", "-crf", str(VIDEO_CRF),
         "-c:a", "aac", "-b:a", "192k",
         "-t", str(duration), "-shortest",
         output_path,
@@ -553,210 +554,29 @@ def split_narration(narration: str, max_seconds: int = MAX_EPISODE_SECONDS) -> l
 # ---------------------------------------------------------------------------
 
 def generate_tiktok_player(episodes: list[dict], output_path: str) -> None:
-    """Generate a self-contained HTML file that mimics TikTok's vertical video feed."""
+    """Stamp episode list into the static player template."""
+    template_path = os.path.join(
+        os.path.dirname(__file__), "..", "player-template.html"
+    )
+    with open(template_path, "r", encoding="utf-8") as f:
+        template = f.read()
+
     video_items = ""
     for ep in episodes:
-        video_items += f"""
-        <div class="video-item" data-category="{ep.get('category', '')}">
-            <video src="videos/{ep['video_file']}" playsinline preload="metadata" loop></video>
-            <div class="overlay">
-                <div class="badge">{ep.get('category', '').upper().replace('-', ' ')}</div>
-                <div class="title">{ep.get('title', '')}</div>
-                <div class="meta">Ep {ep.get('episode', '?')}{' · Part ' + str(ep.get('part', '')) if ep.get('part') else ''} · {ep.get('difficulty', '')}</div>
-            </div>
-            <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>"""
+        part_label = f" · Part {ep['part']}" if ep.get("part") else ""
+        video_items += (
+            f'\n        <div class="video-item" data-category="{ep.get("category", "")}">'
+            f'\n            <video src="videos/{ep["video_file"]}" playsinline preload="metadata" loop></video>'
+            f'\n            <div class="overlay">'
+            f'\n                <div class="badge">{ep.get("category", "").upper().replace("-", " ")}</div>'
+            f'\n                <div class="title">{ep.get("title", "")}</div>'
+            f'\n                <div class="meta">Ep {ep.get("episode", "?")}{part_label} · {ep.get("difficulty", "")}</div>'
+            f'\n            </div>'
+            f'\n            <div class="progress-bar"><div class="progress-fill"></div></div>'
+            f'\n        </div>'
+        )
 
-    html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>🧠 Repo2Brainrot Feed</title>
-<style>
-* {{ margin: 0; padding: 0; box-sizing: border-box; }}
-html, body {{
-    height: 100%; width: 100%; overflow: hidden;
-    background: #000; font-family: -apple-system, 'Segoe UI', sans-serif;
-    color: #fff; -webkit-font-smoothing: antialiased;
-}}
-.feed {{
-    height: 100vh; overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-}}
-.feed::-webkit-scrollbar {{ display: none; }}
-.video-item {{
-    height: 100vh; width: 100%; position: relative;
-    scroll-snap-align: start;
-    display: flex; align-items: center; justify-content: center;
-    background: #000;
-}}
-.video-item video {{
-    width: 100%; height: 100%;
-    object-fit: cover;
-    cursor: pointer;
-}}
-.overlay {{
-    position: absolute; bottom: 80px; left: 16px; right: 80px;
-    pointer-events: none; z-index: 2;
-}}
-.badge {{
-    display: inline-block;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 6px; padding: 4px 10px;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 1.5px; margin-bottom: 8px;
-    text-transform: uppercase;
-}}
-.title {{
-    font-size: 16px; font-weight: 700;
-    line-height: 1.3; margin-bottom: 6px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-}}
-.meta {{
-    font-size: 13px; opacity: 0.7;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-}}
-/* Right sidebar icons (like TikTok) */
-.sidebar {{
-    position: absolute; right: 12px; bottom: 160px;
-    display: flex; flex-direction: column; align-items: center; gap: 20px;
-    z-index: 3;
-}}
-.sidebar-btn {{
-    display: flex; flex-direction: column; align-items: center;
-    cursor: pointer; opacity: 0.9;
-}}
-.sidebar-btn .icon {{ font-size: 28px; }}
-.sidebar-btn .label {{ font-size: 11px; margin-top: 2px; }}
-/* Progress bar */
-.progress-bar {{
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 3px; background: rgba(255,255,255,0.2); z-index: 4;
-}}
-.progress-fill {{
-    height: 100%; width: 0%; background: #fff;
-    transition: none;
-}}
-/* Pause indicator */
-.pause-indicator {{
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    font-size: 64px; opacity: 0; z-index: 5;
-    transition: all 0.2s ease;
-    pointer-events: none;
-}}
-.pause-indicator.show {{
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.8;
-}}
-/* Counter */
-.counter {{
-    position: fixed; top: 16px; left: 50%;
-    transform: translateX(-50%); z-index: 10;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(10px);
-    border-radius: 20px; padding: 6px 16px;
-    font-size: 13px; font-weight: 600;
-    letter-spacing: 0.5px;
-}}
-</style>
-</head>
-<body>
-<div class="counter"><span id="current">1</span> / <span id="total">0</span></div>
-<div class="feed" id="feed">
-{video_items}
-</div>
-
-<script>
-(function() {{
-    const feed = document.getElementById('feed');
-    const items = document.querySelectorAll('.video-item');
-    const total = items.length;
-    document.getElementById('total').textContent = total;
-
-    // Add sidebar + pause indicator to each item
-    items.forEach((item, i) => {{
-        // Sidebar
-        const sb = document.createElement('div');
-        sb.className = 'sidebar';
-        sb.innerHTML = `
-            <div class="sidebar-btn"><span class="icon">💻</span><span class="label">${{item.dataset.category}}</span></div>
-            <div class="sidebar-btn"><span class="icon">🔊</span><span class="label">Sound</span></div>
-        `;
-        item.appendChild(sb);
-
-        // Pause indicator
-        const pi = document.createElement('div');
-        pi.className = 'pause-indicator';
-        pi.textContent = '⏸';
-        item.appendChild(pi);
-    }});
-
-    // Intersection Observer — auto-play/pause
-    const observer = new IntersectionObserver((entries) => {{
-        entries.forEach(entry => {{
-            const video = entry.target.querySelector('video');
-            if (entry.isIntersecting) {{
-                video.play().catch(() => {{}});
-                const idx = Array.from(items).indexOf(entry.target);
-                document.getElementById('current').textContent = idx + 1;
-            }} else {{
-                video.pause();
-            }}
-        }});
-    }}, {{ threshold: 0.6 }});
-
-    items.forEach(item => observer.observe(item));
-
-    // Tap to play/pause
-    items.forEach(item => {{
-        const video = item.querySelector('video');
-        const pi = item.querySelector('.pause-indicator');
-        video.addEventListener('click', () => {{
-            if (video.paused) {{
-                video.play();
-                pi.classList.remove('show');
-            }} else {{
-                video.pause();
-                pi.classList.add('show');
-                setTimeout(() => pi.classList.remove('show'), 600);
-            }}
-        }});
-
-        // Progress bar
-        const fill = item.querySelector('.progress-fill');
-        video.addEventListener('timeupdate', () => {{
-            if (video.duration) {{
-                fill.style.width = (video.currentTime / video.duration * 100) + '%';
-            }}
-        }});
-    }});
-
-    // Keyboard: up/down to navigate, space to pause
-    document.addEventListener('keydown', (e) => {{
-        const currentIdx = parseInt(document.getElementById('current').textContent) - 1;
-        if (e.key === 'ArrowDown' && currentIdx < total - 1) {{
-            items[currentIdx + 1].scrollIntoView({{ behavior: 'smooth' }});
-            e.preventDefault();
-        }} else if (e.key === 'ArrowUp' && currentIdx > 0) {{
-            items[currentIdx - 1].scrollIntoView({{ behavior: 'smooth' }});
-            e.preventDefault();
-        }} else if (e.key === ' ') {{
-            items[currentIdx].querySelector('video').click();
-            e.preventDefault();
-        }}
-    }});
-}})();
-</script>
-</body>
-</html>"""
-
+    html = template.replace("<!-- EPISODES_PLACEHOLDER -->", video_items)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"  ✓ TikTok player: {output_path}")

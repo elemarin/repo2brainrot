@@ -2,7 +2,7 @@
 
 **Turn any GitHub repo into a TikTok-style doom-scroll video feed.**
 
-Powered by a [GitHub Copilot CLI](https://githubnext.com/projects/copilot-cli) skill — Copilot analyzes your codebase across 16 categories, writes brainrot-style scripts, and generates actual short-form videos with AI voice, word-level subtitles, syntax-highlighted code overlays, and background gameplay footage.
+Powered by a [GitHub Copilot CLI](https://githubnext.com/projects/copilot-cli) skill — Copilot analyzes your codebase across 16 categories, writes brainrot-style scripts, and generates actual short-form videos with AI voice, subtitles, syntax-highlighted code overlays, and background gameplay footage.
 
 [![demo](https://img.shields.io/badge/watch-demo_feed-ff0050?style=for-the-badge&logo=tiktok)](output/)
 
