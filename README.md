@@ -152,6 +152,10 @@ repo2brainrot/
 - Code rendering: Pillow
 - Video assembly: FFmpeg
 
+## Demo
+
+![repo2brainrot demo](assets/demo.gif)
+
 ## License
 
 MIT
