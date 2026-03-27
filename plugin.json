@@ -1,0 +1,14 @@
+{
+  "name": "repo2brainrot",
+  "description": "Analyze repositories and generate doom-scroll video scripts and rendering assets.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": [
+    "agent-skill",
+    "copilot-cli",
+    "repo-analysis",
+    "video-generation",
+    "documentation"
+  ],
+  "skills": "skills/"
+}

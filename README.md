@@ -1,242 +1,180 @@
-# 🧠 repo2brainrot
+# repo2brainrot
 
-**Turn any GitHub repo into a TikTok-style doom-scroll video feed.**
+Turn a code repository into a TikTok-style doom-scroll video feed.
 
-Powered by a [GitHub Copilot CLI](https://githubnext.com/projects/copilot-cli) skill — Copilot analyzes your codebase across 16 categories, writes brainrot-style scripts, and generates actual short-form videos with AI voice, subtitles, syntax-highlighted code overlays, and background gameplay footage.
+`repo2brainrot` is now packaged as a portable **Agent Skill** plus a **GitHub Copilot CLI plugin**:
 
-[![demo](https://img.shields.io/badge/watch-demo_feed-ff0050?style=for-the-badge&logo=tiktok)](output/)
+- The canonical skill lives in `skills/repo2brainrot/`
+- GitHub Copilot CLI can install the repo directly via `plugin.json`
+- Claude- and Agent-Skills-compatible tools can reuse the same `skills/` folder
 
----
+This is the portable distribution shape. The old `.github/skills/...` layout is useful for repo-local skills, but it is not the best format for publishing a reusable skill repo.
 
 ## What it produces
 
-```
+```text
 output/<repo-name>/
-├── player.html          ← TikTok-style scroll feed. Open in browser.
-├── videos/ep01.mp4      ← Individual episodes (~45-60s each)
-├── videos/full_feed.mp4 ← All episodes concatenated
-├── scripts/             ← Episode JSON scripts (editable)
-├── audio/               ← Kokoro TTS WAV files
-├── subs/                ← Word-level .ass subtitle files
-└── analysis.json        ← Full 16-category repo analysis
+├── player.html
+├── videos/ep01.mp4
+├── videos/full_feed.mp4
+├── scripts/
+├── audio/
+├── subs/
+└── analysis.json
 ```
 
-Each episode:
-- 🎙️ **AI narration** — Kokoro 82M TTS at 1.5x speed, reddit-story energy
-- 📝 **Word-by-word subtitles** — wav2vec2 forced alignment, Impact font, center-screen
-- 💻 **Code overlays** — reads real files from your repo, Catppuccin dark theme, 26pt
-- 🎮 **Background footage** — Subway Surfers / Minecraft parkour vibes
-- ⏱️ **Hard 60s cap** — auto-splits longer topics into Part 1, Part 2
+Each episode includes:
 
----
+- AI narration with Kokoro TTS
+- Word-level subtitles
+- Syntax-highlighted code overlays from the real repo
+- Vertical background footage
+- Auto-splitting when a topic runs past 60 seconds
 
-## Quick Start
+## Install options
 
-### 1. Prerequisites
+### GitHub Copilot CLI
 
-**System dependencies:**
+Install the whole repository as a plugin:
+
+```bash
+copilot plugin install OWNER/REPO
+```
+
+Then use the skill in a Copilot CLI session:
+
+```text
+/repo2brainrot repos/my-repo
+```
+
+You can also install from a local clone while developing:
+
+```bash
+copilot plugin install .
+```
+
+### Manual Agent Skill install
+
+If you want the portable skill without plugin installation, copy `skills/repo2brainrot/` into one of these supported skill locations:
+
+- Copilot personal skills: `~/.copilot/skills/repo2brainrot/`
+- Claude personal skills: `~/.claude/skills/repo2brainrot/`
+- Generic Agent Skills location: `~/.agents/skills/repo2brainrot/`
+
+Or add it as a project skill inside a target repository:
+
+- Copilot project skill: `.github/skills/repo2brainrot/`
+- Claude project skill: `.claude/skills/repo2brainrot/`
+- Generic project skill: `.agents/skills/repo2brainrot/`
+
+The important part is the folder shape: one skill directory containing `SKILL.md` plus its bundled resources.
+
+## Prerequisites
+
+### System dependencies
+
 ```bash
 # ffmpeg (required for video assembly)
-# Windows:
 winget install Gyan.FFmpeg
 
-# espeak-ng (required for Kokoro TTS phonemizer)
-# Windows: download MSI from https://github.com/espeak-ng/espeak-ng/releases
+# espeak-ng (required for Kokoro phonemizer)
+# Windows: install from https://github.com/espeak-ng/espeak-ng/releases
 ```
 
-**Python dependencies:**
+### Python dependencies
+
+From a clone of this repository:
+
 ```bash
-pip install -r .github/skills/repo2brainrot/scripts/requirements.txt
+pip install -r skills/repo2brainrot/scripts/requirements.txt
 ```
-> Requires Python 3.11+ and ~4GB disk for Torch + Kokoro model (downloads on first run)
 
-**Background videos** — add 1-3 gameplay/satisfying clips to `assets/`:
-```
-assets/
-├── 1.mp4   ← e.g. Subway Surfers, Minecraft parkour, satisfying clips
-├── 2.mp4
-└── 3.mp4
-```
-These are the background footage for your videos. Not included in this repo (too large) — source your own.
+Requires Python 3.11+ and enough disk space for PyTorch and the Kokoro model download.
+
+## Quick start
+
+### 1. Add gameplay footage
+
+Put 1-3 background clips in `assets/`.
 
 ### 2. Add a repo to analyze
 
 ```bash
-# Clone or copy the repo you want to analyze into repos/
 git clone https://github.com/some/repo repos/my-repo
 ```
 
-### 3. Run via GitHub Copilot CLI
+### 3. Run the skill
 
-```
+```text
 /repo2brainrot repos/my-repo
 ```
 
-Copilot will:
-1. Scan the repo across 16 categories and score them
-2. Show you a category menu — pick what you want
-3. Write the episode scripts
-4. Run the video pipeline
-5. Serve `player.html` at `http://localhost:8888`
+Copilot will analyze the repo, ask which categories you want, write scripts, generate videos, and build `player.html`.
 
-### 4. Or run manually
+## Run the video pipeline manually
+
+If you already have episode JSON files and want to render them directly from this repository:
 
 ```bash
-# Generate videos from pre-written scripts
-python .github/skills/repo2brainrot/scripts/generate_video.py \
+python skills/repo2brainrot/scripts/generate_video.py \
   --scripts output/my-repo/scripts/ \
   --assets assets/ \
   --output output/my-repo/videos/ \
   --repo repos/my-repo
+```
 
-# Serve the player
+To serve the generated feed:
+
+```bash
 cd output/my-repo
 python -m http.server 8888
-# Open http://localhost:8888/player.html
 ```
 
----
+Then open `http://localhost:8888/player.html`.
 
-## How It Works
+## Repo layout
 
-```
-Repo ──► Analysis ──► Episode Picker ──► Scripts ──► TTS ──► Alignment ──► Video ──► Player
-  │        (16          (you choose)     (<60s,      Kokoro   wav2vec2    FFmpeg    HTML
-  │      categories)                     auto-split)  82M     → .ass               TikTok
-  └── assets/1.mp4, 2.mp4, 3.mp4 (background footage) ─────────────────────────────────►
-```
-
-### The 16 Categories
-
-Every repo is analyzed across these dimensions (scored 0-3, higher = more interesting content):
-
-| # | Category | What it covers |
-|---|----------|---------------|
-| 1 | 🗂️ Project Structure | Folder layout, entry points, naming conventions |
-| 2 | 📦 Dependencies | Libraries, package manager, why they were chosen |
-| 3 | 🔑 Authentication | JWT, OAuth, sessions, protected routes |
-| 4 | 🗺️ Routing | URL mapping, navigation, route guards |
-| 5 | 🧠 State Management | Redux, Zustand, Context, reducers, middleware |
-| 6 | 🧩 Components/UI | Component hierarchy, patterns, hooks |
-| 7 | 🌐 API Layer | HTTP clients, endpoints, data fetching |
-| 8 | 🎨 Styling | CSS approach, design system, theming |
-| 9 | 📐 Data Models | Types, interfaces, schemas, validation |
-| 10 | 📝 Forms & Input | Controlled inputs, validation, submission |
-| 11 | ✏️ CRUD | Create/Read/Update/Delete patterns |
-| 12 | 🛡️ Error Handling | Error boundaries, display, recovery |
-| 13 | 🧪 Testing | Unit/integration/e2e tests, coverage |
-| 14 | ⚙️ Build & Config | Webpack/Vite, env vars, CI/CD |
-| 15 | 🔒 Security | XSS, CSRF, sanitization, token safety |
-| 16 | ⚡ Performance | Memoization, lazy loading, pagination, caching |
-
-### Script Format
-
-Scripts are plain JSON — fully editable before rendering:
-
-```json
-{
-  "episode": 1,
-  "category": "state-management",
-  "title": "36 Action Types. ONE File. I'm Not Even Kidding.",
-  "difficulty": "intermediate",
-  "duration_target_seconds": 55,
-  "narration": "So I open the constants folder right, and there's ONE file...",
-  "code_snippets": [
-    {
-      "file": "src/constants/actionTypes.js",
-      "lines": "1-10",
-      "highlight": "APP_LOAD",
-      "show_at_second": 8,
-      "duration": 6,
-      "caption": "^ every possible action, one file"
-    }
-  ],
-  "visual_cues": [
-    { "at_second": 0, "text": "🧠 STATE MANAGEMENT", "position": "top-center", "style": "badge" }
-  ]
-}
-```
-
-The `highlight` field is used to auto-sync the code overlay: the pipeline finds exactly when that word is spoken (via forced alignment) and shows the overlay 0.3s before it.
-
----
-
-## Repo Structure
-
-```
+```text
 repo2brainrot/
+├── plugin.json
 ├── README.md
 ├── .gitignore
-├── .github/
-│   └── skills/
-│       └── repo2brainrot/
-│           ├── SKILL.md           ← Copilot CLI skill definition
-│           ├── references/
-│           │   ├── categories.md  ← The 16 analysis categories
-│           │   ├── video-format.md ← Script format spec
-│           │   └── analysis-procedure.md ← How to analyze repos
-│           └── scripts/
-│               ├── generate_video.py  ← Full pipeline (TTS→Align→Overlay→FFmpeg)
-│               └── requirements.txt
-├── assets/                        ← Background videos (add your own, not in repo)
-│   └── .gitkeep
-├── repos/                         ← Clone repos here to analyze (not in repo)
-│   └── .gitkeep
-└── output/                        ← Generated videos and scripts (not in repo)
-    └── .gitkeep
+├── skills/
+│   └── repo2brainrot/
+│       ├── SKILL.md
+│       ├── player-template.html
+│       ├── references/
+│       │   ├── categories.md
+│       │   ├── video-format.md
+│       │   └── analysis-procedure.md
+│       └── scripts/
+│           ├── generate_video.py
+│           ├── compress_videos.py
+│           └── requirements.txt
+├── assets/
+├── repos/
+└── output/
 ```
 
----
+## Development notes
 
-## Customization
+- `repos/` contains repos to analyze and is ignored by Git
+- `output/` contains generated artifacts and is ignored by Git
+- `assets/` can hold local footage while you work; keep only intentional sample assets under version control
+- If you edit a local plugin install, reinstall it so Copilot CLI refreshes its cache:
 
-### Change voice or speed
-Edit `generate_video.py` constants:
-```python
-KOKORO_VOICE = "af_heart"   # or: am_michael, af_sarah, bf_emma, bm_george
-KOKORO_SPEED = 1.5          # 1.0 = normal, 1.5 = brainrot pacing
-```
-
-### Change video resolution
-```python
-VIDEO_WIDTH = 1080
-VIDEO_HEIGHT = 1920   # 9:16 vertical (TikTok/Reels/Shorts)
-```
-
-### Re-render a single episode
 ```bash
-python .github/skills/repo2brainrot/scripts/generate_video.py \
-  --scripts output/my-repo/scripts/ \
-  --assets assets/ \
-  --output output/my-repo/videos/ \
-  --episode 3   # only render episode 3
+copilot plugin install .
 ```
 
----
+## Tech stack
 
-## Tech Stack
-
-| Component | Tech | Why |
-|-----------|------|-----|
-| TTS | [Kokoro 82M](https://github.com/hexgrad/kokoro) | Local, Apache licensed, great voice quality |
-| Subtitle alignment | wav2vec2 (torchaudio) | Word-level timestamps, runs offline |
-| Code rendering | Pillow | Syntax highlighting, Catppuccin theme |
-| Video assembly | FFmpeg | Industry standard, handles everything |
-| AI orchestration | GitHub Copilot CLI | Repo analysis + script writing |
-
----
-
-## Requirements
-
-- Python 3.11+
-- ffmpeg on PATH
-- espeak-ng installed
-- ~4GB disk for PyTorch + Kokoro model (auto-downloads first run)
-- Background `.mp4` files in `assets/`
-- GPU optional (runs on CPU, just slower for TTS)
-
----
+- Skill orchestration: Agent Skills + GitHub Copilot CLI
+- TTS: Kokoro 82M
+- Subtitle alignment: wav2vec2 via torchaudio
+- Code rendering: Pillow
+- Video assembly: FFmpeg
 
 ## License
 
-MIT — use it, fork it, make your own brainrot.
+MIT

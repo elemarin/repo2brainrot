@@ -1,8 +1,3 @@
-# Background videos — too large for git
-assets/*.mp4
-assets/*.mov
-assets/*.webm
-
 # Python
 __pycache__/
 *.py[cod]
@@ -30,3 +25,6 @@ desktop.ini
 *.pth
 *.bin
 *.safetensors
+
+repos/**/*.*
+output/**/*.*
