@@ -1,0 +1,38 @@
+# Generated output — don't commit
+output/
+
+# Repos being analyzed — don't commit
+repos/
+
+# Background videos — too large for git
+assets/*.mp4
+assets/*.mov
+assets/*.webm
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Models cache (Kokoro, wav2vec2 — auto-downloads)
+.cache/
+models/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+
+# Torch / HuggingFace cache (huge)
+*.pt
+*.pth
+*.bin
+*.safetensors
