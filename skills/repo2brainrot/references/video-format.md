@@ -7,7 +7,7 @@ The script needs to work as both a text document (for the LLM to generate) and a
 ## HARD RULES
 
 - **60 seconds MAX per video.** No exceptions. If the topic needs more time → Part 1, Part 2, Part 3.
-- **~150 words max** per episode narration (at 1.1x speed = ~55 seconds).
+- **~150 words max** per episode narration (at 1.3x speed = roughly 45-55 seconds).
 - **No filler.** Every sentence must either hook, teach, or land. Cut anything that doesn't.
 - **Read like a reddit post** — casual, first-person, like you're telling someone a story.
 
@@ -107,7 +107,7 @@ When a topic needs more than 60 seconds:
 - Don't pad with filler — if you can cut a sentence, cut it
 
 ### Pacing Target:
-- ~170 words per minute (Kokoro at 1.1x speed)
+- Aim for brisk delivery at 1.3x speed
 - Target: ~150 words per episode (~55 seconds)
 - NEVER exceed 170 words (would blow past 60s)
 
@@ -122,7 +122,7 @@ Style: Default,Impact,48,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,10
 
 Key style properties:
 - **Font:** Impact (bold, high contrast)
-- **Size:** 48pt (LARGE — readable on mobile, like the reddit story TikToks)
+- **Size:** 52pt (slightly larger — more readable on mobile)
 - **Color:** White with 3px black outline
 - **Shadow:** Semi-transparent black for readability over any background
 - **Alignment:** Center-center (5 in ASS format)
@@ -132,7 +132,7 @@ Key style properties:
 
 Code snippets are **read from the actual repo files** (not hardcoded in scripts). Rendered as images via Pillow:
 - **Background:** Dark (#1E1E2E) with rounded corners + macOS window dots
-- **Font:** Consolas / Cascadia Code / JetBrains Mono, **26pt** (much bigger — must be readable on phone)
+- **Font:** Consolas / Cascadia Code / JetBrains Mono, **30pt** (bigger and easier to read on phone)
 - **Max lines:** 12 (truncate longer snippets with `// ...`)
 - **Syntax highlighting:** Catppuccin theme (keywords blue, strings green, comments gray)
 - **Position:** Bottom third of screen, centered

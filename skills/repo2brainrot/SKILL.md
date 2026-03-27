@@ -123,7 +123,7 @@ The pipeline does the following per episode:
 - Uses [Kokoro](https://github.com/hexgrad/kokoro) — 82M param open-weight TTS model
 - Apache licensed, runs locally, no API key needed
 - Way better voice quality than edge-tts — natural, expressive, fast
-- Speed set to 1.1x for brainrot pacing
+- Speed set to 1.3x for brainrot pacing without sounding rushed
 - Requires `espeak-ng` installed on system (Windows: download MSI from espeak-ng releases)
 - Voice: `af_heart` (clear, natural)
 - Output: `output/<repo-name>/audio/ep{N}.wav` (24kHz) + 16kHz version for alignment
@@ -131,13 +131,13 @@ The pipeline does the following per episode:
 #### Step 3b: Forced Alignment (Subtitle Generation)
 - Uses `wav2vec2` (via torchaudio) to align audio with transcript
 - Produces word-level timestamps
-- Converts to `.ass` subtitle format — Impact 48pt, white with black outline, center-screen
+- Converts to `.ass` subtitle format — Impact 52pt, white with black outline, center-screen
 - Falls back to even-spaced timing if alignment fails
 - Output: `output/<repo-name>/subs/ep{N}.ass`
 
 #### Step 3c: Code Overlays (Pillow)
 - Reads **REAL code** from the actual repo files (not copy-pasted into scripts)
-- Font size: 26pt monospace (Consolas/Cascadia/JetBrains Mono) — readable on mobile
+- Font size: 30pt monospace (Consolas/Cascadia/JetBrains Mono) — more readable on mobile
 - Dark background (#1E1E2E) with macOS-style window dots, rounded corners
 - Catppuccin syntax highlighting (keywords blue, strings green, comments gray)
 - Max 12 lines per snippet — choose punchy sections

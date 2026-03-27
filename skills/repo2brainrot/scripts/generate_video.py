@@ -35,19 +35,19 @@ from PIL import Image, ImageDraw, ImageFont
 # ---------------------------------------------------------------------------
 
 SUBTITLE_STYLE = (
-    "Style: Default,Impact,48,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,"
+    "Style: Default,Impact,52,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,"
     "-1,0,0,0,100,100,0,0,1,3,1,5,10,10,40,1"
 )
 
 KOKORO_VOICE = "af_heart"   # clear, natural female voice
-KOKORO_SPEED = 1.5          # fast brainrot pacing
+KOKORO_SPEED = 1.3          # fast but still understandable
 VIDEO_WIDTH = 720
 VIDEO_HEIGHT = 1280          # 9:16 vertical (720p — good enough for mobile, much smaller files)
 VIDEO_CRF = 28               # libx264 quality — 23=high quality large, 28=good quality small
 MAX_EPISODE_SECONDS = 60     # hard cap — split into parts if longer
 
 # Code overlay config — BIGGER font for readability
-CODE_FONT_SIZE = 26
+CODE_FONT_SIZE = 30
 CODE_LINE_HEIGHT = CODE_FONT_SIZE + 10
 CODE_BG_COLOR = (30, 30, 46, 240)   # #1E1E2E – Catppuccin Mocha base
 CODE_TEXT_COLOR = (205, 214, 244)    # #CDD6F4
