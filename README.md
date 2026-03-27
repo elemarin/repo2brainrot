@@ -2,13 +2,9 @@
 
 Turn a code repository into a TikTok-style doom-scroll video feed.
 
-`repo2brainrot` is now packaged as a portable **Agent Skill** plus a **GitHub Copilot CLI plugin**:
+Point it at a repo, pick the most interesting parts, and turn the codebase into short-form episodes with narration, subtitles, code overlays, and a swipeable feed.
 
-- The canonical skill lives in `skills/repo2brainrot/`
-- GitHub Copilot CLI can install the repo directly via `plugin.json`
-- Claude- and Agent-Skills-compatible tools can reuse the same `skills/` folder
-
-This is the portable distribution shape. The old `.github/skills/...` layout is useful for repo-local skills, but it is not the best format for publishing a reusable skill repo.
+It works with **GitHub Copilot CLI**, **GitHub Copilot in VS Code / agent mode**, **Claude Code**, and other tools that support the open **Agent Skills** format.
 
 ## What it produces
 
@@ -31,9 +27,7 @@ Each episode includes:
 - Vertical background footage
 - Auto-splitting when a topic runs past 60 seconds
 
-## Install options
-
-### GitHub Copilot CLI
+## Use it with Copilot CLI
 
 Install the whole repository as a plugin:
 
@@ -47,15 +41,9 @@ Then use the skill in a Copilot CLI session:
 /repo2brainrot repos/my-repo
 ```
 
-You can also install from a local clone while developing:
+## Use it as a standalone skill
 
-```bash
-copilot plugin install .
-```
-
-### Manual Agent Skill install
-
-If you want the portable skill without plugin installation, copy `skills/repo2brainrot/` into one of these supported skill locations:
+If you want to use the skill outside the plugin flow, copy `skills/repo2brainrot/` into one of these supported skill locations:
 
 - Copilot personal skills: `~/.copilot/skills/repo2brainrot/`
 - Claude personal skills: `~/.claude/skills/repo2brainrot/`
@@ -67,7 +55,7 @@ Or add it as a project skill inside a target repository:
 - Claude project skill: `.claude/skills/repo2brainrot/`
 - Generic project skill: `.agents/skills/repo2brainrot/`
 
-The important part is the folder shape: one skill directory containing `SKILL.md` plus its bundled resources.
+The important part is the folder shape: one skill directory containing `SKILL.md` and its bundled resources.
 
 ## Prerequisites
 
@@ -154,17 +142,6 @@ repo2brainrot/
 ├── assets/
 ├── repos/
 └── output/
-```
-
-## Development notes
-
-- `repos/` contains repos to analyze and is ignored by Git
-- `output/` contains generated artifacts and is ignored by Git
-- `assets/` can hold local footage while you work; keep only intentional sample assets under version control
-- If you edit a local plugin install, reinstall it so Copilot CLI refreshes its cache:
-
-```bash
-copilot plugin install .
 ```
 
 ## Tech stack
